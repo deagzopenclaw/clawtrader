@@ -1,0 +1,17 @@
+# Local/runtime noise
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example
+node_modules/
+
+# Credentials / private keys
+*.pem
+*.key
+*private*
+*secret*
+
+# OpenClaw transient locks
+*.lock

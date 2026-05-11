@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalshi Scout Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#06080d; --panel:#101722; --panel2:#0c111b; --line:#223044;
+      --text:#edf4ff; --muted:#8fa1b8; --faint:#62748b;
+      --good:#39d98a; --warn:#ffd166; --bad:#ff5c7a; --blue:#63b3ff; --purple:#b794f4;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; font-family: Inter, Segoe UI, Arial, sans-serif; color:var(--text);
+      background:
+        radial-gradient(circle at 12% -10%, rgba(99,179,255,.28), transparent 28%),
+        radial-gradient(circle at 85% 0%, rgba(183,148,244,.22), transparent 24%),
+        linear-gradient(180deg, #07101d 0%, var(--bg) 44%, #05070b 100%);
+      min-height:100vh;
+    }
+    header { padding:30px 34px 16px; }
+    .hero { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+    h1 { margin:0; font-size:38px; letter-spacing:-.055em; line-height:1; }
+    .sub { color:var(--muted); margin-top:10px; font-size:15px; }
+    .badge { border:1px solid rgba(57,217,138,.35); color:var(--good); background:rgba(57,217,138,.1); padding:8px 12px; border-radius:999px; font-weight:700; white-space:nowrap; }
+    .grid { display:grid; gap:16px; padding:10px 34px 34px; grid-template-columns: repeat(12, 1fr); }
+    .card {
+      background:linear-gradient(180deg, rgba(16,23,34,.94), rgba(12,17,27,.94));
+      border:1px solid rgba(143,161,184,.18); border-radius:20px; padding:18px;
+      box-shadow:var(--shadow); overflow:auto; backdrop-filter: blur(10px);
+    }
+    .span3 { grid-column:span 3; } .span4 { grid-column:span 4; } .span8 { grid-column:span 8; } .span12 { grid-column:span 12; }
+    .metric { font-size:34px; font-weight:850; letter-spacing:-.05em; }
+    .metric.good { color:var(--good); } .metric.warn { color:var(--warn); }
+    .label { color:var(--muted); font-size:13px; margin-top:4px; }
+    h2 { margin:0 0 14px; font-size:18px; letter-spacing:-.02em; }
+    p { line-height:1.45; }
+    .status-list { display:grid; gap:10px; }
+    .status-row { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid rgba(143,161,184,.12); padding-bottom:9px; }
+    .status-row span:first-child { color:var(--muted); }
+    .bar { height:10px; background:#07101d; border:1px solid var(--line); border-radius:999px; overflow:hidden; margin-top:10px; }
+    .bar > div { height:100%; background:linear-gradient(90deg, var(--blue), var(--purple)); border-radius:999px; }
+    table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+    th,td { padding:11px 9px; border-bottom:1px solid rgba(143,161,184,.12); vertical-align:top; }
+    th { color:var(--muted); text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    tr:hover td { background:rgba(99,179,255,.045); }
+    .num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .rank { color:var(--faint); width:34px; }
+    .score { color:var(--blue); font-weight:800; }
+    a { color:var(--blue); text-decoration:none; font-weight:650; }
+    a:hover { text-decoration:underline; }
+    .tiny { color:var(--faint); font-size:11px; margin-top:3px; }
+    .pill { display:inline-block; padding:4px 9px; border-radius:999px; background:#1b2433; font-size:12px; white-space:nowrap; font-weight:700; }
+    .watch-priority,.high-priority-review { background:rgba(57,217,138,.14); color:var(--good); border:1px solid rgba(57,217,138,.22); }
+    .watch,.paper-trade { background:rgba(255,209,102,.13); color:var(--warn); border:1px solid rgba(255,209,102,.22); }
+    .skip-wide-spread,.skip-low-liquidity,.pass { background:rgba(255,92,122,.12); color:var(--bad); border:1px solid rgba(255,92,122,.2); }
+    .research { background:rgba(99,179,255,.12); color:var(--blue); border:1px solid rgba(99,179,255,.2); }
+    .good { color:var(--good); } .bad { color:var(--bad); } .muted { color:var(--muted); }
+    code { background:#07101d; border:1px solid var(--line); border-radius:8px; padding:2px 6px; color:#c8e1ff; }
+    .footer-note { color:var(--faint); font-size:12px; padding:0 34px 28px; }
+    @media (max-width: 1000px) { .span3,.span4,.span8,.span12 { grid-column:span 12; } .grid, header { padding-left:14px; padding-right:14px; } .hero { flex-direction:column; } h1 { font-size:32px; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <div>
+      <h1>Kalshi Scout</h1>
+      <div class="sub">Prediction-market research, paper trading, and learning dashboard.</div>
+    </div>
+    <div class="badge">LIVE TRADING DISABLED</div>
+  </div>
+</header>
+<main class="grid">
+  <section class="card span3"><div class="metric">openai-codex/gpt-5.5</div><div class="label">Active model</div></section>
+  <section class="card span3"><div class="metric">100</div><div class="label">Markets scanned</div></section>
+  <section class="card span3"><div class="metric ">0</div><div class="label">Watch candidates</div></section>
+  <section class="card span3"><div class="metric ">0</div><div class="label">Paper/high-priority estimates</div></section>
+
+  <section class="card span4">
+    <h2>System Status</h2>
+    <div class="status-list">
+      <div class="status-row"><span>Mode</span><b>research-and-paper-trading</b></div>
+      <div class="status-row"><span>Live trading</span><span class="pill pass">disabled</span></div>
+      <div class="status-row"><span>Last scan</span><b>5/11/2026, 6:49:34 PM</b></div>
+      <div class="status-row"><span>Research bucket</span><b>45 markets</b></div>
+      <div class="status-row"><span>Skipped</span><b>55 markets</b></div>
+    </div>
+    <div class="bar"><div style="width:45%"></div></div>
+    <p class="muted">Next: choose a market and run <code>node trading\estimate-market.mjs --ticker=TICKER --prob=0.55</code></p>
+  </section>
+
+  <section class="card span8">
+    <h2>Latest Probability Estimates</h2>
+    <table><thead><tr><th>Action</th><th>Ticker</th><th>Title</th><th>Side</th><th>Market</th><th>Est.</th><th>Edge</th><th>Conf.</th><th>Notes</th></tr></thead><tbody>
+      
+    <tr>
+      <td><span class="pill pass">pass</span></td>
+      <td>KXMLBHR-26MAY112210SFLAD-SFWADAMES2-2</td>
+      <td>Willy Adames: 2+ home runs?</td>
+      <td class="num">YES</td>
+      <td class="num">1c</td>
+      <td class="num">3c</td>
+      <td class="num ">2c</td>
+      <td>low</td>
+      <td>Smoke test estimate; not a real trade thesis</td>
+    </tr>
+    </tbody></table>
+  </section>
+
+  <section class="card span12">
+    <h2>Market Watchlist</h2>
+    <table><thead><tr><th>#</th><th>Status</th><th>Score</th><th>Ticker</th><th>Title</th><th>Bid/Ask</th><th>Spread</th><th>Liquidity</th><th>Close</th></tr></thead><tbody>
+      
+    <tr>
+      <td class="rank">1</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">24</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhr-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHR-26MAY112210SFLAD-SFWADAMES2-2</a><div class="tiny">KXMLBHR-26MAY112210SFLAD</div></td>
+      <td>Willy Adames: 2+ home runs?</td>
+      <td class="num">0c / 2c</td>
+      <td class="num">2c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">2</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">21</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFJLEE51-4</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Jung Hoo Lee: 4+ hits?</td>
+      <td class="num">0c / 3c</td>
+      <td class="num">3c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">3</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">21</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFHBADER9-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Harrison Bader: 1+ hits?</td>
+      <td class="num">54c / 57c</td>
+      <td class="num">3c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">4</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">21</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhr-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHR-26MAY112210SFLAD-SFWADAMES2-1</a><div class="tiny">KXMLBHR-26MAY112210SFLAD</div></td>
+      <td>Willy Adames: 1+ home runs?</td>
+      <td class="num">13c / 16c</td>
+      <td class="num">3c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">5</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">18</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFLARRAEZ1-4</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Luis Arraez: 4+ hits?</td>
+      <td class="num">0c / 4c</td>
+      <td class="num">4c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">6</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">17</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFMCHAPMAN26-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Matt Chapman: 1+ hits?</td>
+      <td class="num">50c / 55c</td>
+      <td class="num">5c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">7</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">15</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-SFHBADER9-3</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Harrison Bader: 3+ total bases?</td>
+      <td class="num">14c / 19c</td>
+      <td class="num">5c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">8</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">15</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFMCHAPMAN26-3</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Matt Chapman: 3+ hits?</td>
+      <td class="num">0c / 5c</td>
+      <td class="num">5c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">9</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">15</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFJLEE51-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Jung Hoo Lee: 1+ hits?</td>
+      <td class="num">63c / 68c</td>
+      <td class="num">5c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">10</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">15</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFHRAMOS17-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Heliot Ramos: 1+ hits?</td>
+      <td class="num">61c / 66c</td>
+      <td class="num">5c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">11</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">13</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhrr-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHRR-26MAY112210SFLAD-LADAPAGES44-2</a><div class="tiny">KXMLBHRR-26MAY112210SFLAD</div></td>
+      <td>Andy Pages: 2+ hits + runs + RBIs?</td>
+      <td class="num">45c / 51c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">12</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-LADTHERNANDEZ37-2</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Teoscar Hernández: 2+ total bases?</td>
+      <td class="num">34c / 40c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">13</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-LADAPAGES44-2</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Andy Pages: 2+ total bases?</td>
+      <td class="num">35c / 41c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">14</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFWADAMES2-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Willy Adames: 1+ hits?</td>
+      <td class="num">55c / 61c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">15</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-LADMMUNCY13-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Max Muncy: 1+ hits?</td>
+      <td class="num">54c / 60c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">16</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFJRODRIGUEZ79-3</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Jesus Rodriguez: 3+ hits?</td>
+      <td class="num">0c / 6c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">17</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFHBADER9-3</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Harrison Bader: 3+ hits?</td>
+      <td class="num">0c / 6c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">18</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFCSCHMITT10-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Casey Schmitt: 1+ hits?</td>
+      <td class="num">60c / 66c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">19</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">12</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-LADAPAGES44-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Andy Pages: 1+ hits?</td>
+      <td class="num">60c / 66c</td>
+      <td class="num">6c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">20</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">9</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-SFMCHAPMAN26-5</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Matt Chapman: 5+ total bases?</td>
+      <td class="num">2c / 9c</td>
+      <td class="num">7c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">21</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">9</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-SFLARRAEZ1-5</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Luis Arraez: 5+ total bases?</td>
+      <td class="num">1c / 8c</td>
+      <td class="num">7c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">22</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">9</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-SFHRAMOS17-2</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Heliot Ramos: 2+ total bases?</td>
+      <td class="num">36c / 43c</td>
+      <td class="num">7c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">23</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">9</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-SFCSCHMITT10-2</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Casey Schmitt: 2+ total bases?</td>
+      <td class="num">35c / 42c</td>
+      <td class="num">7c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">24</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">6</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-LADTHERNANDEZ37-5</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Teoscar Hernández: 5+ total bases?</td>
+      <td class="num">3c / 11c</td>
+      <td class="num">8c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">25</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">6</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-SFLARRAEZ1-2</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Luis Arraez: 2+ total bases?</td>
+      <td class="num">38c / 46c</td>
+      <td class="num">8c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">26</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">6</td>
+      <td><a href="https://kalshi.com/markets/kxmlbtb-26may112210sflad" target="_blank" rel="noreferrer">KXMLBTB-26MAY112210SFLAD-SFCSCHMITT10-5</a><div class="tiny">KXMLBTB-26MAY112210SFLAD</div></td>
+      <td>Casey Schmitt: 5+ total bases?</td>
+      <td class="num">3c / 11c</td>
+      <td class="num">8c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">27</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">6</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFWADAMES2-3</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Willy Adames: 3+ hits?</td>
+      <td class="num">0c / 8c</td>
+      <td class="num">8c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">28</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">6</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-LADTHERNANDEZ37-3</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Teoscar Hernández: 3+ hits?</td>
+      <td class="num">0c / 8c</td>
+      <td class="num">8c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">29</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">6</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFJRODRIGUEZ79-1</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Jesus Rodriguez: 1+ hits?</td>
+      <td class="num">53c / 61c</td>
+      <td class="num">8c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    <tr>
+      <td class="rank">30</td>
+      <td><span class="pill research">research</span></td>
+      <td class="num score">6</td>
+      <td><a href="https://kalshi.com/markets/kxmlbhit-26may112210sflad" target="_blank" rel="noreferrer">KXMLBHIT-26MAY112210SFLAD-SFCSCHMITT10-3</a><div class="tiny">KXMLBHIT-26MAY112210SFLAD</div></td>
+      <td>Casey Schmitt: 3+ hits?</td>
+      <td class="num">0c / 8c</td>
+      <td class="num">8c</td>
+      <td class="num">$0.00</td>
+      <td>5/14/2026, 10:10:00 PM</td>
+    </tr>
+    </tbody></table>
+  </section>
+</main>
+<div class="footer-note">Kalshi Scout is currently research-only. Nothing here is financial advice or a live trade instruction.</div>
+</body>
+</html>

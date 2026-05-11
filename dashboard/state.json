@@ -1,0 +1,15 @@
+{
+  "agent": "kalshi",
+  "name": "Kalshi Scout",
+  "liveTradingEnabled": false,
+  "mode": "research-and-paper-trading",
+  "lastScanAt": "2026-05-11T22:49:34.949Z",
+  "lastError": null,
+  "model": "openai-codex/gpt-5.5",
+  "watchlistCounts": {
+    "fetched": 100,
+    "watchPriority": 0,
+    "watch": 0,
+    "skipped": 55
+  }
+}
