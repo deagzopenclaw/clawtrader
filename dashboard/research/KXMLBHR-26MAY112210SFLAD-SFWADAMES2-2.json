@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-05-11T23:27:01.187Z",
+  "ticker": "KXMLBHR-26MAY112210SFLAD-SFWADAMES2-2",
+  "eventTicker": "KXMLBHR-26MAY112210SFLAD",
+  "title": "Willy Adames: 2+ home runs?",
+  "status": "active",
+  "closeTime": "2026-05-15T02:10:00Z",
+  "kalshiUrl": "https://kalshi.com/markets/kxmlbhr-26may112210sflad",
+  "apiUrl": "https://external-api.kalshi.com/trade-api/v2/markets/KXMLBHR-26MAY112210SFLAD-SFWADAMES2-2",
+  "eventApiUrl": "https://external-api.kalshi.com/trade-api/v2/events/KXMLBHR-26MAY112210SFLAD",
+  "prices": {
+    "yesBidCents": 0,
+    "yesAskCents": 2,
+    "noBidCents": 98,
+    "noAskCents": 100,
+    "lastPriceCents": 0,
+    "yesSpreadCents": 2
+  },
+  "rules": {
+    "primary": "If Willy Adames records 2+ home runs in San Francisco vs Los Angeles D professional baseball game originally scheduled for May 11, 2026 at 10:10 PM EDT, then the market resolves to Yes.",
+    "secondary": "Player Participation & Settlement Criteria\nIf Willy Adames is scratched or not included in the starting lineup, the market will resolve to the fair market price.\nIf Willy Adames starts the game but does not record a plate appearance, the market will resolve to the fair market price.\nIf Willy Adames is not in the starting lineup but later enters the game, the market will resolve to the fair market price, pinch hit at bats will not count towards the market.\nIf Willy Adames is in the starting lineup and records at least one plate appearance the market will settle based on home runs recorded."
+  },
+  "searchQueries": [
+    "Willy Adames: 2+ home runs? Kalshi market probability",
+    "San Francisco vs Los Angeles D: Home Runs latest news",
+    "Willy Adames: 2+ home runs? stats forecast",
+    "If Willy Adames records 2+ home runs in San Francisco vs Los Angeles D professional baseball game originally scheduled f data source"
+  ],
+  "notes": "Smoke test research brief from scanner top market"
+}

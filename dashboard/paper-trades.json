@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-05-11T23:27:01.236Z",
+  "trades": [
+    {
+      "id": "1778542021235-KXMLBHR-26MAY112210SFLAD-SFWADAMES2-2",
+      "createdAt": "2026-05-11T23:27:01.235Z",
+      "mode": "paper",
+      "status": "open",
+      "ticker": "KXMLBHR-26MAY112210SFLAD-SFWADAMES2-2",
+      "side": "yes",
+      "entryPriceCents": 1,
+      "estimatedProbCents": 3,
+      "edgeCents": 2,
+      "paperStakeDollars": 10,
+      "confidence": "medium",
+      "thesis": "Smoke test paper trade only; not a real thesis",
+      "source": "manual",
+      "result": null,
+      "lesson": null
+    }
+  ]
+}

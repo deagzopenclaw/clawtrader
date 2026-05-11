@@ -48,16 +48,42 @@ function estimateRows(items = []) {
     </tr>`).join('');
 }
 
+function briefRows(items = []) {
+  return items.slice(0, 8).map(b => `
+    <tr>
+      <td>${esc(b.ticker)}</td>
+      <td>${esc(b.title)}</td>
+      <td>${esc(b.status)}</td>
+      <td>${fmtDate(b.closeTime)}</td>
+    </tr>`).join('');
+}
+
+function tradeRows(trades = []) {
+  return trades.slice(0, 12).map(t => `
+    <tr>
+      <td><span class="pill paper-trade">${esc(t.status)}</span></td>
+      <td>${esc(t.ticker)}</td>
+      <td class="num">${esc(String(t.side || '').toUpperCase())}</td>
+      <td class="num">${fmtCents(t.entryPriceCents)}</td>
+      <td class="num">${fmtCents(t.estimatedProbCents)}</td>
+      <td class="num ${Number(t.edgeCents || 0) >= 8 ? 'good' : ''}">${fmtCents(t.edgeCents)}</td>
+      <td class="num">${Number(t.paperStakeDollars || 0).toFixed(2)}</td>
+      <td>${esc(t.thesis)}</td>
+    </tr>`).join('');
+}
+
 async function main() {
   const watchlist = await readJson('watchlist.json', { counts: {}, markets: [] });
   const estimates = await readJson('estimates.json', { items: [] });
+  const briefs = await readJson('research-briefs.json', { items: [] });
+  const trades = await readJson('paper-trades.json', { trades: [] });
   const state = await readJson('state.json', {});
   const markets = watchlist.markets || [];
   const priority = markets.filter(m => m.scannerStatus === 'watch-priority').length;
   const watch = markets.filter(m => m.scannerStatus === 'watch').length;
   const research = markets.filter(m => m.scannerStatus === 'research').length;
   const skipped = markets.filter(m => String(m.scannerStatus || '').startsWith('skip')).length;
-  const paper = (estimates.items || []).filter(e => ['paper-trade', 'high-priority-review'].includes(e.action)).length;
+  const paper = (trades.trades || []).filter(t => t.status === 'open').length;
   const fetched = Number(watchlist.counts?.fetched || markets.length || 0);
 
   const html = `<!doctype html>
@@ -140,7 +166,7 @@ async function main() {
   <section class="card span3"><div class="metric">${esc(state.model || 'gpt-5.5')}</div><div class="label">Active model</div></section>
   <section class="card span3"><div class="metric">${fetched}</div><div class="label">Markets scanned</div></section>
   <section class="card span3"><div class="metric ${priority + watch ? 'warn' : ''}">${priority + watch}</div><div class="label">Watch candidates</div></section>
-  <section class="card span3"><div class="metric ${paper ? 'good' : ''}">${paper}</div><div class="label">Paper/high-priority estimates</div></section>
+  <section class="card span3"><div class="metric ${paper ? 'good' : ''}">${paper}</div><div class="label">Open paper trades</div></section>
 
   <section class="card span4">
     <h2>System Status</h2>
@@ -159,6 +185,20 @@ async function main() {
     <h2>Latest Probability Estimates</h2>
     <table><thead><tr><th>Action</th><th>Ticker</th><th>Title</th><th>Side</th><th>Market</th><th>Est.</th><th>Edge</th><th>Conf.</th><th>Notes</th></tr></thead><tbody>
       ${estimateRows(estimates.items) || '<tr><td colspan="9" class="muted">No estimates yet.</td></tr>'}
+    </tbody></table>
+  </section>
+
+  <section class="card span4">
+    <h2>Research Briefs</h2>
+    <table><thead><tr><th>Ticker</th><th>Title</th><th>Status</th><th>Close</th></tr></thead><tbody>
+      ${briefRows(briefs.items) || '<tr><td colspan="4" class="muted">No research briefs yet.</td></tr>'}
+    </tbody></table>
+  </section>
+
+  <section class="card span8">
+    <h2>Paper Trades</h2>
+    <table><thead><tr><th>Status</th><th>Ticker</th><th>Side</th><th>Entry</th><th>Est.</th><th>Edge</th><th>Stake</th><th>Thesis</th></tr></thead><tbody>
+      ${tradeRows(trades.trades) || '<tr><td colspan="8" class="muted">No paper trades yet.</td></tr>'}
     </tbody></table>
   </section>
 
